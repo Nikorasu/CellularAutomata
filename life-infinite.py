@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import pygame as pg
+from csv import reader
 
 '''
 This is a Conway's Game of Life simulation, using a dictionary class.
@@ -24,14 +25,6 @@ class LifeGrid(dict):
         return 0
 
     def check_cell(self, x: int, y: int):
-        #x_coords = (x-1, x, x+1)
-        #y_coords = (y-1, y, y+1)
-        #total = 0
-        #for x_coord in x_coords:
-        #    for y_coord in y_coords:
-        #        total += self[x_coord, y_coord]
-        # future idea
-        # store number of neighbors in dict values, after this. Reset any above 1 to 1 before.
         total = (self[x,(y-1)] + self[x,(y+1)] + self[(x-1),y] +
                 self[(x+1),y] + self[(x-1),(y-1)] + self[(x-1),(y+1)] +
                 self[(x+1),(y-1)] + self[(x+1),(y+1)])
@@ -40,7 +33,7 @@ class LifeGrid(dict):
         # sim rules
         if total == 3 and not cell:
             live.append((x, y))
-        elif not 2 <= total <= 3 and cell:  # total < 3 or total > 4
+        elif not 2 <= total <= 3 and cell:
             dead.append((x, y))
         elif cell:
             pass
@@ -87,43 +80,50 @@ def main():
     cSize = CSIZE
     cur_w, cur_h = screen.get_size()
     scaled_x, scaled_y = cur_w//cSize, cur_h//cSize
-
     centerx, centery = scaled_x//2, scaled_y//2
-    lifeLayer = LifeGrid(
-        {   # Lidka
-            (centerx+0, centery+0): 1,
-            (centerx-1, centery+0): 1,
-            (centerx-1, centery+1): 1,
-            (centerx-2, centery+2): 1,
-            (centerx-3, centery+2): 1,
-            (centerx-4, centery+2): 1,
-            (centerx+2, centery-2): 1,
-            (centerx+2, centery-3): 1,
-            (centerx+3, centery-2): 1,
-            (centerx+4, centery-2): 1,
-            (centerx+4, centery+0): 1,
-            (centerx+4, centery+1): 1,
-            (centerx+4, centery+2): 1,
-        }
-    )
-    ''' 7468 rp
-            (centerx+1, centery+0): 1,
-            (centerx+0, centery+1): 1,
-            (centerx+1, centery+1): 1,
-            (centerx+1, centery+2): 1,
-            (centerx+2, centery+2): 1,
-            (centerx+4, centery+2): 1,
-            (centerx+5, centery+2): 1,
-            (centerx+5, centery+3): 1,
 
-    R-Pentomino
-            (centerx+2, centery+2): 1,
-            (centerx+3, centery+2): 1,
-            (centerx+2, centery+3): 1,
-            (centerx+1, centery+3): 1,
-            (centerx+2, centery+4): 1,
+    patdict = {}
+    with open('patterns/gunstar') as patfile:
+        pattern = reader(patfile)
+        for px, py in pattern:
+            patdict[centerx+int(px), centery+int(py)] = 1
+    lifeLayer = LifeGrid(patdict)
     '''
-    simFrame = 1
+    lifeLayer = LifeGrid({  # Lidka
+        (centerx+0, centery+0): 1,
+        (centerx-1, centery+0): 1,
+        (centerx-1, centery+1): 1,
+        (centerx-2, centery+2): 1,
+        (centerx-3, centery+2): 1,
+        (centerx-4, centery+2): 1,
+        (centerx+2, centery-2): 1,
+        (centerx+2, centery-3): 1,
+        (centerx+3, centery-2): 1,
+        (centerx+4, centery-2): 1,
+        (centerx+4, centery+0): 1,
+        (centerx+4, centery+1): 1,
+        (centerx+4, centery+2): 1,
+    })'''
+    '''
+    lifeLayer = LifeGrid({  # 7468 rp
+        (centerx+1, centery+0): 1,
+        (centerx+0, centery+1): 1,
+        (centerx+1, centery+1): 1,
+        (centerx+1, centery+2): 1,
+        (centerx+2, centery+2): 1,
+        (centerx+4, centery+2): 1,
+        (centerx+5, centery+2): 1,
+        (centerx+5, centery+3): 1,
+    })
+    lifeLayer = LifeGrid({  # R-Pentomino
+        (centerx+2, centery+2): 1,
+        (centerx+3, centery+2): 1,
+        (centerx+2, centery+3): 1,
+        (centerx+1, centery+3): 1,
+        (centerx+2, centery+4): 1,
+    })
+    '''
+    simFrame = 1  # starting speed
     toggler = False
     updateDelayer = 0
     clock = pg.time.Clock()
@@ -137,18 +137,12 @@ def main():
         for e in pg.event.get():
             if e.type == pg.QUIT : return
             elif e.type == pg.MOUSEBUTTONDOWN:
-                if e.button == 1:
-                    lifeLayer.poke(pg.mouse.get_pos(), cSize, adjust_x, adjust_y, True)
-                if e.button == 3:
-                    lifeLayer.poke(pg.mouse.get_pos(), cSize, adjust_x, adjust_y, False)
+                if e.button == 1 : lifeLayer.poke(pg.mouse.get_pos(), cSize, adjust_x, adjust_y, True)
+                elif e.button == 3 : lifeLayer.poke(pg.mouse.get_pos(), cSize, adjust_x, adjust_y, False)
             elif e.type == pg.KEYDOWN:
                 if e.key == pg.K_q or e.key == pg.K_ESCAPE : return
-                if e.key == pg.K_SPACE or e.key==pg.K_KP_ENTER or e.key==pg.K_RETURN : toggler = not toggler
-                if e.key == pg.K_UP : adjust_y -= scaled_y//10
-                if e.key == pg.K_DOWN : adjust_y += scaled_y//10
-                if e.key == pg.K_LEFT : adjust_x -= scaled_x//10
-                if e.key == pg.K_RIGHT : adjust_x += scaled_x//10
-                if e.key == pg.K_KP1 or e.key == pg.K_1 : simFrame = 1
+                elif e.key == pg.K_SPACE or e.key==pg.K_KP_ENTER or e.key==pg.K_RETURN : toggler = not toggler
+                elif e.key == pg.K_KP1 or e.key == pg.K_1 : simFrame = 1
                 elif e.key == pg.K_KP2 or e.key == pg.K_2 : simFrame = 3
                 elif e.key == pg.K_KP3 or e.key == pg.K_3 : simFrame = 5
                 elif e.key == pg.K_KP4 or e.key == pg.K_4 : simFrame = 8
@@ -157,6 +151,10 @@ def main():
                 elif e.key == pg.K_KP7 or e.key == pg.K_7 : simFrame = 20
                 elif e.key == pg.K_KP8 or e.key == pg.K_8 : simFrame = 28
                 elif e.key == pg.K_KP9 or e.key == pg.K_9 : simFrame = 42
+                if e.key == pg.K_UP : adjust_y -= scaled_y//10
+                if e.key == pg.K_DOWN : adjust_y += scaled_y//10
+                if e.key == pg.K_LEFT : adjust_x -= scaled_x//10
+                if e.key == pg.K_RIGHT : adjust_x += scaled_x//10
                 if e.key == pg.K_KP_MINUS and cSize > 1:
                     old_cx, old_cy = scaled_x//2, scaled_y//2
                     cSize -= 1
