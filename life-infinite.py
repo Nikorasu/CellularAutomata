@@ -9,9 +9,9 @@ Uses methods from github.com/madelyneriksen/game-of-life
 '''
 
 FLLSCRN = False          # True for Fullscreen, or False for Window
-WIDTH = 1600             # window Width
-HEIGHT = 1000            # window Height
-CSIZE = 10               # starting cell pixel size
+WIDTH = 1200             # window Width
+HEIGHT = 800             # window Height
+CSIZE = 5                # starting cell pixel size
 FPS = 60                 # 30-90
 VSYNC = True             # limit frame rate to refresh rate
 SHOWFPS = True           # show framerate debug
@@ -29,14 +29,11 @@ class LifeGrid(dict):
                 self[(x+1),y] + self[(x-1),(y-1)] + self[(x-1),(y+1)] +
                 self[(x+1),(y-1)] + self[(x+1),(y+1)])
         live, dead = [], []
-        cell = self[x, y]
         # sim rules
-        if total == 3 and not cell:
-            live.append((x, y))
-        elif not 2 <= total <= 3 and cell:
+        if total == 3 and not self[x, y]:
+            live.append((x, y)) # could prevent if too far away
+        elif not 2 <= total <= 3 and self[x, y]:
             dead.append((x, y))
-        elif cell:
-            pass
         return live, dead
 
     def queue_cells(self):
@@ -58,10 +55,8 @@ class LifeGrid(dict):
             dead += step_dead
         # Grid doesn't change until every cell is accounted for.
         for x, y in dead:
-            if self[x, y]:
-                del self[x, y]
-        for x, y in live:
-            self[x, y] = 1  # if x or y < largenum: # to remove stray gliders
+            if self[x, y] : del self[x, y]
+        for x, y in live : self[x, y] = 1
 
     def poke(self, pos, cSize, off_x, off_y, alive):
         spot = ((pos[0]-3)//cSize)+off_x, ((pos[1]-4)//cSize)+off_y  # edge rounding weird
@@ -83,7 +78,7 @@ def main():
     centerx, centery = scaled_x//2, scaled_y//2
 
     patdict = {}
-    with open('patterns/gunstar') as patfile:
+    with open('patterns/52513M') as patfile:
         pattern = reader(patfile)
         for px, py in pattern:
             patdict[centerx+int(px), centery+int(py)] = 1
@@ -104,25 +99,7 @@ def main():
         (centerx+4, centery+1): 1,
         (centerx+4, centery+2): 1,
     })'''
-    '''
-    lifeLayer = LifeGrid({  # 7468 rp
-        (centerx+1, centery+0): 1,
-        (centerx+0, centery+1): 1,
-        (centerx+1, centery+1): 1,
-        (centerx+1, centery+2): 1,
-        (centerx+2, centery+2): 1,
-        (centerx+4, centery+2): 1,
-        (centerx+5, centery+2): 1,
-        (centerx+5, centery+3): 1,
-    })
-    lifeLayer = LifeGrid({  # R-Pentomino
-        (centerx+2, centery+2): 1,
-        (centerx+3, centery+2): 1,
-        (centerx+2, centery+3): 1,
-        (centerx+1, centery+3): 1,
-        (centerx+2, centery+4): 1,
-    })
-    '''
+
     simFrame = 1  # starting speed
     toggler = False
     updateDelayer = 0
@@ -162,7 +139,7 @@ def main():
                     centerx, centery = scaled_x//2, scaled_y//2
                     adjust_x += (old_cx - centerx)
                     adjust_y += (old_cy - centery)
-                if e.key == pg.K_KP_PLUS and cSize < 20:
+                if e.key == pg.K_KP_PLUS and cSize < 16:
                     old_cx, old_cy = scaled_x//2, scaled_y//2
                     cSize += 1
                     scaled_x, scaled_y = cur_w//cSize, cur_h//cSize
@@ -178,18 +155,15 @@ def main():
             updateDelayer=0
             lifeLayer.play_game()
 
-        screen.fill(0)
-        out_image.fill(0)
-
         pixel_array = pg.PixelArray(out_image)
 
         for x, y in lifeLayer.keys():
             visible_x = (0 + adjust_x) < x < (scaled_x + adjust_x)
             visible_y = (0 + adjust_y) < y < (scaled_y + adjust_y)
             if visible_x and visible_y:
-                pixel_array[x - adjust_x, y - adjust_y] = (200,240,220)
+                pixel_array[x - adjust_x, y - adjust_y] = (100,242,200)
 
-        #pg.surfarray.blit_array(out_image, img_array)
+        screen.fill(0)
         rescaled_img = pg.transform.scale(out_image, (cur_w, cur_h))
         screen.blit(rescaled_img, (0,0))
 
