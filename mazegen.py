@@ -2,15 +2,13 @@
 import pygame as pg
 
 '''
-This is a Conway's Game of Life simulation, using dictionary class.
+A Cellular Automata using Mazectric ruleset.
 By Nikolaus Stromberg  2021  nikorasu85@gmail.com
-Uses methods from github.com/madelyneriksen/game-of-life
 '''
 
 FLLSCRN = False          # True for Fullscreen, or False for Window
-WIDTH = 1600             # window Width
-HEIGHT = 1000            # window Height
-SIMFRAME = 2             # frames between sim updates
+WIDTH = 1200             # window Width
+HEIGHT = 800             # window Height
 CSIZE = 10               # starting cell pixel size
 FPS = 60                 # 30-90
 VSYNC = True             # limit frame rate to refresh rate
@@ -25,49 +23,42 @@ class LifeGrid(dict):
         return 0
 
     def check_cell(self, x: int, y: int):
-        #x_coords = (x-1, x, x+1)
-        #y_coords = (y-1, y, y+1)
-        #total = 0
-        #for x_coord in x_coords:
-        #    for y_coord in y_coords:
-        #        total += self[x_coord, y_coord]
         total = (self[x,(y-1)] + self[x,(y+1)] + self[(x-1),y] +
                 self[(x+1),y] + self[(x-1),(y-1)] + self[(x-1),(y+1)] +
                 self[(x+1),(y-1)] + self[(x+1),(y+1)])
         live, dead = [], []
-        cell = self[x, y]
         # sim rules
-        if total == 3 and not cell:
+        if total == 3 and not self[x, y]:
             live.append((x, y))
-        elif total == 0 or total in range(5,8) and cell:  # total < 3 or total > 4  # not 2 <= total <= 3
+        elif total == 0 or total in range(5,8) and self[x, y]:  # total < 3 or total > 4  # not 2 <= total <= 3
             dead.append((x, y))
-        elif cell:
-            pass
         return live, dead
 
     def queue_cells(self):
-        cells = []
+        #cells = []
+        cells = set()
         for x, y in self.keys():
             # Add all cell neighbors to the function.
             x_coords = (x-1, x, x+1)
             y_coords = (y-1, y, y+1)
             for x_coord in x_coords:
                 for y_coord in y_coords:
-                    cells.append((x_coord, y_coord))
+                    cells.add((x_coord, y_coord))
+                    #cells.append((x_coord, y_coord))
         return cells
 
     def play_game(self):
-        live, dead = [], []
+        live, dead = set(), set() #live, dead = [], []
         for x, y in self.queue_cells():
             step_live, step_dead = self.check_cell(x, y)
-            live += step_live
-            dead += step_dead
+            live.update(step_live)
+            dead.update(step_dead)
+            #live += step_live
+            #dead += step_dead
         # Grid doesn't change until every cell is accounted for.
         for x, y in dead:
-            if self[x, y]:
-                del self[x, y]
-        for x, y in live:
-            self[x, y] = 1
+            if self[x, y] : del self[x, y]
+        for x, y in live : self[x, y] = 1
 
     def poke(self, pos, cSize, off_x, off_y, alive):
         spot = ((pos[0]-3)//cSize)+off_x, ((pos[1]-4)//cSize)+off_y  # edge rounding weird
@@ -86,8 +77,8 @@ def main():
     cSize = CSIZE
     cur_w, cur_h = screen.get_size()
     scaled_x, scaled_y = cur_w//cSize, cur_h//cSize
-
     centerx, centery = scaled_x//2, scaled_y//2
+
     lifeLayer = LifeGrid(
         {   # Lidka
             (centerx+0, centery+0): 1,
@@ -106,6 +97,7 @@ def main():
         }
     )
 
+    simFrame = 1  # starting speed
     toggler = False
     updateDelayer = 0
     clock = pg.time.Clock()
@@ -119,13 +111,20 @@ def main():
         for e in pg.event.get():
             if e.type == pg.QUIT : return
             elif e.type == pg.MOUSEBUTTONDOWN:
-                if e.button == 1:
-                    lifeLayer.poke(pg.mouse.get_pos(), cSize, adjust_x, adjust_y, True)
-                if e.button == 3:
-                    lifeLayer.poke(pg.mouse.get_pos(), cSize, adjust_x, adjust_y, False)
+                if e.button == 1 : lifeLayer.poke(pg.mouse.get_pos(), cSize, adjust_x, adjust_y, True)
+                elif e.button == 3 : lifeLayer.poke(pg.mouse.get_pos(), cSize, adjust_x, adjust_y, False)
             elif e.type == pg.KEYDOWN:
-                if e.key == pg.K_q or e.key == pg.K_ESCAPE: return
-                if e.key == pg.K_SPACE : toggler = not toggler
+                if e.key == pg.K_q or e.key == pg.K_ESCAPE : return
+                elif e.key == pg.K_SPACE or e.key==pg.K_KP_ENTER or e.key==pg.K_RETURN : toggler = not toggler
+                elif e.key == pg.K_KP1 or e.key == pg.K_1 : simFrame = 1
+                elif e.key == pg.K_KP2 or e.key == pg.K_2 : simFrame = 3
+                elif e.key == pg.K_KP3 or e.key == pg.K_3 : simFrame = 5
+                elif e.key == pg.K_KP4 or e.key == pg.K_4 : simFrame = 8
+                elif e.key == pg.K_KP5 or e.key == pg.K_5 : simFrame = 11
+                elif e.key == pg.K_KP6 or e.key == pg.K_6 : simFrame = 15
+                elif e.key == pg.K_KP7 or e.key == pg.K_7 : simFrame = 20
+                elif e.key == pg.K_KP8 or e.key == pg.K_8 : simFrame = 28
+                elif e.key == pg.K_KP9 or e.key == pg.K_9 : simFrame = 42
                 if e.key == pg.K_UP : adjust_y -= scaled_y//10
                 if e.key == pg.K_DOWN : adjust_y += scaled_y//10
                 if e.key == pg.K_LEFT : adjust_x -= scaled_x//10
@@ -137,7 +136,7 @@ def main():
                     centerx, centery = scaled_x//2, scaled_y//2
                     adjust_x += (old_cx - centerx)
                     adjust_y += (old_cy - centery)
-                if e.key == pg.K_KP_PLUS and cSize < 20:
+                if e.key == pg.K_KP_PLUS and cSize < 16:
                     old_cx, old_cy = scaled_x//2, scaled_y//2
                     cSize += 1
                     scaled_x, scaled_y = cur_w//cSize, cur_h//cSize
@@ -149,12 +148,9 @@ def main():
         out_image = pg.Surface((scaled_x, scaled_y)).convert()
 
         if toggler : updateDelayer+=1
-        if updateDelayer>=SIMFRAME:
+        if updateDelayer>=simFrame:
             updateDelayer=0
             lifeLayer.play_game()
-
-        screen.fill(0)
-        out_image.fill(0)
 
         pixel_array = pg.PixelArray(out_image)
 
@@ -164,7 +160,7 @@ def main():
             if visible_x and visible_y:
                 pixel_array[x - adjust_x, y - adjust_y] = (242,242,242)
 
-        #pg.surfarray.blit_array(out_image, img_array)
+        screen.fill(0)
         rescaled_img = pg.transform.scale(out_image, (cur_w, cur_h))
         screen.blit(rescaled_img, (0,0))
 

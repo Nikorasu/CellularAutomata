@@ -31,28 +31,35 @@ class LifeGrid(dict):
         live, dead = [], []
         # sim rules
         if total == 3 and not self[x, y]:
-            live.append((x, y)) # could prevent if too far away
+            #live = (x,y)
+            live.append((x, y)) # could check if too far away
         elif not 2 <= total <= 3 and self[x, y]:
+            #dead = (x,y)
             dead.append((x, y))
         return live, dead
 
     def queue_cells(self):
-        cells = []
+        #cells = []
+        cells = set()
         for x, y in self.keys():
             # Add all cell neighbors to the function.
             x_coords = (x-1, x, x+1)
             y_coords = (y-1, y, y+1)
             for x_coord in x_coords:
                 for y_coord in y_coords:
-                    cells.append((x_coord, y_coord))
+                    cells.add((x_coord, y_coord))
+                    #cells.append((x_coord, y_coord))
         return cells
 
     def play_game(self):
-        live, dead = [], []
+        live, dead = set(), set()
+        #live, dead = [], []
         for x, y in self.queue_cells():
             step_live, step_dead = self.check_cell(x, y)
-            live += step_live
-            dead += step_dead
+            live.update(step_live)
+            dead.update(step_dead)
+            #live += step_live
+            #dead += step_dead
         # Grid doesn't change until every cell is accounted for.
         for x, y in dead:
             if self[x, y] : del self[x, y]
@@ -78,7 +85,7 @@ def main():
     centerx, centery = scaled_x//2, scaled_y//2
 
     patdict = {}
-    with open('patterns/52513M') as patfile:
+    with open('patterns/ripconway') as patfile:
         pattern = reader(patfile)
         for px, py in pattern:
             patdict[centerx+int(px), centery+int(py)] = 1
