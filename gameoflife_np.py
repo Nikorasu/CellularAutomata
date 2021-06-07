@@ -55,8 +55,7 @@ def main():
     pg.display.set_caption("Life")
     # setup fullscreen or window mode
     nativeRez = (pg.display.Info().current_w, pg.display.Info().current_h)
-    if FLLSCRN:
-        screen = pg.display.set_mode(nativeRez, pg.SCALED | pg.NOFRAME | pg.FULLSCREEN, vsync=VSYNC)
+    if FLLSCRN : screen = pg.display.set_mode(nativeRez, pg.SCALED | pg.NOFRAME | pg.FULLSCREEN, vsync=VSYNC)
     else: screen = pg.display.set_mode((WIDTH, HEIGHT), pg.SCALED, vsync=VSYNC)
 
     cSize = PRATIO
@@ -66,7 +65,7 @@ def main():
     centerx, centery = zoomed_w//2, zoomed_h//2
 
     patcoords = set()
-    with open('patterns/gunstar') as patfile:
+    with open('patterns/52513M') as patfile:
         pattern = reader(patfile)
         patcoords = { (int(x), int(y)) for x,y in pattern }
 
@@ -132,22 +131,19 @@ def main():
                     adjust_x += (old_cx - centerx)
                     adjust_y += (old_cy - centery)
 
-        # if adjust + zoom would be bigger than screen, subtract overlap amount from adjust
-        zoomed_w, zoomed_h = win_w//cSize, win_h//cSize
-        outimg = pg.Surface((zoomed_w, zoomed_h)).convert()
-
         if toggler : updateDelayer+=1
         if updateDelayer>=simFrame:
             updateDelayer=0
             lifeLayer.runLife()
 
+        zoomed_w, zoomed_h = win_w//cSize, win_h//cSize
+        outimg = pg.Surface((zoomed_w, zoomed_h)).convert()
         screen.fill(0)
 
         pg.surfarray.blit_array(outimg, lifeLayer.grid[adjust_x:adjust_x+zoomed_w, adjust_y:adjust_y+zoomed_h] * 0xFFFFFF)
         # 16777215
         rescaled_img = pg.transform.scale(outimg, (win_w, win_h))
         screen.blit(rescaled_img, (0,0))
-
         # if true, displays the fps in the upper left corner, for debugging
         if SHOWFPS : screen.blit(font.render(str(int(clock.get_fps())), True, [0,200,0]), (8, 8))
 
