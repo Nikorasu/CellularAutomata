@@ -9,27 +9,22 @@ Copyright (c) 2021  Nikolaus Stromberg  nikorasu85@gmail.com
 '''
 
 FLLSCRN = False          # True for Fullscreen, or False for Window
-WIDTH = 1000             # default 800
-HEIGHT = 1000            # default 800
-PRATIO = 1                # starting cell pixel size
+WIDTH = 1200             # default 800
+HEIGHT = 800             # default 800
+PRATIO = 2               # starting cell pixel size
 FPS = 60                 # 30-90
 VSYNC = True             # limit frame rate to refresh rate
 SHOWFPS = True           # show framerate debug
 
 
-
 class LifeGrid():
-    def __init__(self, bigSize, patcoords):
-        self.size = (bigSize[0]//PRATIO, bigSize[1]//PRATIO)
+    def __init__(self, maxSize, patcoords):
+        self.size = maxSize
         self.grid = np.zeros(self.size, np.int16)
         cenA_x = self.size[0]//2
         cenA_y = self.size[1]//2
         for x,y in patcoords:
             self.grid[cenA_x+x, cenA_y+y] = 1
-        #self.grid[cenA_x:cenA_x+patcoords.shape[0],cenA_y:cenA_y+patcoords.shape[1]] = patcoords
-        #self.grid = np.random.randint(0, 100, self.size, np.int16)
-        #self.grid[self.grid <= 0.1 * 100] = 1
-        #self.grid[self.grid > 0.1 * 100] = 0
         self.neighbor_counts = np.zeros(self.size, np.int16)
 
     def runLife(self):
@@ -45,92 +40,101 @@ class LifeGrid():
         three = self.neighbor_counts == 3
 
         self.grid[:] = 0  # zero out the current grid
-
         # lots of unnecessary copying here, but it's so elegant - Ghast's wizardry
         self.grid[(alive & (two | three)) | ((~alive) & three)] = 1
-        '''
-        laststate = np.copy(self.img_array)
-        for y in range(self.size[1]):
-            for x in range(self.size[0]):
-                neighbors = 0
-                neighbors = np.sum(laststate[x - 1 : x + 2, y - 1 : y + 2]) / 16777215  # - laststate[x,y]
-                # rules
-                if self.img_array[x,y] and not 3 <= neighbors <= 4:
-                    self.img_array[x,y] = 0
-                elif neighbors == 3:
-                    self.img_array[x,y] = 16777215
-        '''
 
-    def poke(self, pos, valtog):
-        spot = ((pos[0]-2)//PRATIO), ((pos[1]-2)//PRATIO)
-        #if spot[0]==self.size[0] : spot = 0,spot[1]
-        #if spot[1]==self.size[1] : spot = spot[0],0
-        self.grid[spot] = valtog
+    def poke(self, pos, cSize, off_x, off_y, status):
+        spot = ((pos[0]-3)//cSize)+off_x, ((pos[1]-4)//cSize)+off_y  # edge rounding weird
+        if spot[0]==self.size[0] : spot = 0,spot[1]
+        if spot[1]==self.size[1] : spot = spot[0],0
+        self.grid[spot] = status
 
 
 def main():
     pg.init()  # prepare window
     pg.display.set_caption("Life")
     # setup fullscreen or window mode
+    nativeRez = (pg.display.Info().current_w, pg.display.Info().current_h)
     if FLLSCRN:
-        currentRez = (pg.display.Info().current_w, pg.display.Info().current_h)
-        screen = pg.display.set_mode(currentRez, pg.SCALED | pg.NOFRAME | pg.FULLSCREEN, vsync=VSYNC)
+        screen = pg.display.set_mode(nativeRez, pg.SCALED | pg.NOFRAME | pg.FULLSCREEN, vsync=VSYNC)
     else: screen = pg.display.set_mode((WIDTH, HEIGHT), pg.SCALED, vsync=VSYNC)
 
-    cur_w, cur_h = screen.get_size()
-    scaled_x, scaled_y = cur_w//PRATIO, cur_h//PRATIO
-    centerx, centery = scaled_x//2, scaled_y//2
-    #lifeLayer = LifeGrid((cur_w, cur_h))
-
-    outimg = pg.Surface((scaled_x,scaled_y)).convert()
+    cSize = PRATIO
+    full_w, full_h = nativeRez
+    win_w, win_h = screen.get_size()
+    zoomed_w, zoomed_h = win_w//cSize, win_h//cSize
+    centerx, centery = zoomed_w//2, zoomed_h//2
 
     patcoords = set()
-    with open('patterns/symfiller') as patfile:
+    with open('patterns/gunstar') as patfile:
         pattern = reader(patfile)
         patcoords = { (int(x), int(y)) for x,y in pattern }
-        #np.array([[int(x), int(y)] for x,y in pattern])
 
-    lifeLayer = LifeGrid((cur_w, cur_h), patcoords)
-
-    '''
-    lifeLayer = LifeGrid({  # Lidka
-        (centerx+0, centery+0): 1,
-        (centerx-1, centery+0): 1,
-        (centerx-1, centery+1): 1,
-        (centerx-2, centery+2): 1,
-        (centerx-3, centery+2): 1,
-        (centerx-4, centery+2): 1,
-        (centerx+2, centery-2): 1,
-        (centerx+2, centery-3): 1,
-        (centerx+3, centery-2): 1,
-        (centerx+4, centery-2): 1,
-        (centerx+4, centery+0): 1,
-        (centerx+4, centery+1): 1,
-        (centerx+4, centery+2): 1,
-    })'''
+    lifeLayer = LifeGrid(nativeRez, patcoords)
 
     simFrame = 1  # starting speed
     toggler = False
     updateDelayer = 0
     clock = pg.time.Clock()
     if SHOWFPS : font = pg.font.Font(None, 30)
-    adjust_x, adjust_y = 0, 0
+    adjust_x, adjust_y = (full_w//2)-centerx, (full_h//2)-centery
 
     # main loop
     while True:
+        clock.tick(FPS)
+
         for e in pg.event.get():
-            if e.type == pg.QUIT or e.type == pg.KEYDOWN and e.key == pg.K_ESCAPE:
-                return
+            if e.type == pg.QUIT : return
             elif e.type == pg.MOUSEBUTTONDOWN:
                 mousepos = pg.mouse.get_pos()
-                if e.button == 1:
-                    lifeLayer.poke(mousepos, 1)  # 16777215
-                if e.button == 3:
-                    lifeLayer.poke(mousepos, 0)
-            elif e.type == pg.KEYDOWN and e.key == pg.K_SPACE:
-                toggler = not toggler
+                if e.button == 1 : lifeLayer.poke(mousepos, cSize, adjust_x, adjust_y, 1)
+                if e.button == 3 : lifeLayer.poke(mousepos, cSize, adjust_x, adjust_y, 0)
+            elif e.type == pg.KEYDOWN:
+                if e.key == pg.K_q or e.key == pg.K_ESCAPE : return
+                elif e.key == pg.K_SPACE or e.key==pg.K_KP_ENTER or e.key==pg.K_RETURN : toggler = not toggler
+                elif e.key == pg.K_KP1 or e.key == pg.K_1 : simFrame = 1
+                elif e.key == pg.K_KP2 or e.key == pg.K_2 : simFrame = 3
+                elif e.key == pg.K_KP3 or e.key == pg.K_3 : simFrame = 5
+                elif e.key == pg.K_KP4 or e.key == pg.K_4 : simFrame = 8
+                elif e.key == pg.K_KP5 or e.key == pg.K_5 : simFrame = 11
+                elif e.key == pg.K_KP6 or e.key == pg.K_6 : simFrame = 15
+                elif e.key == pg.K_KP7 or e.key == pg.K_7 : simFrame = 20
+                elif e.key == pg.K_KP8 or e.key == pg.K_8 : simFrame = 28
+                elif e.key == pg.K_KP9 or e.key == pg.K_9 : simFrame = 42
+                if e.key == pg.K_UP and adjust_y > 0:
+                    adjust_y -= zoomed_h//10
+                    if adjust_y < 0 : adjust_y = 0
+                if e.key == pg.K_DOWN and adjust_y < full_h:
+                    adjust_y += zoomed_h//10
+                    if adjust_y+zoomed_h > full_h: adjust_y = full_h-zoomed_h
+                if e.key == pg.K_LEFT and adjust_x > 0:
+                    adjust_x -= zoomed_w//10
+                    if adjust_x < 0 : adjust_x = 0
+                if e.key == pg.K_RIGHT and adjust_x < full_w:
+                    adjust_x += zoomed_w//10
+                    if adjust_x+zoomed_w > full_w: adjust_x = full_w-zoomed_w
+                if e.key == pg.K_KP_MINUS and cSize > 1:
+                    old_cx, old_cy = centerx, centery
+                    cSize -= 1
+                    zoomed_w, zoomed_h = win_w//cSize, win_h//cSize
+                    centerx, centery = zoomed_w//2, zoomed_h//2
+                    adjust_x += (old_cx - centerx)
+                    adjust_y += (old_cy - centery)
+                    if adjust_x+zoomed_w > full_w : adjust_x -= (adjust_x + zoomed_w) - full_w
+                    elif adjust_x < 0 : adjust_x = 0
+                    if adjust_y+zoomed_h > full_h : adjust_y -= (adjust_y + zoomed_h) - full_h
+                    elif adjust_y < 0 : adjust_y = 0
+                if e.key == pg.K_KP_PLUS and cSize < 12:
+                    old_cx, old_cy = centerx, centery
+                    cSize += 1
+                    zoomed_w, zoomed_h = win_w//cSize, win_h//cSize
+                    centerx, centery = zoomed_w//2, zoomed_h//2
+                    adjust_x += (old_cx - centerx)
+                    adjust_y += (old_cy - centery)
 
-        dt = clock.tick(FPS) / 100
+        # if adjust + zoom would be bigger than screen, subtract overlap amount from adjust
+        zoomed_w, zoomed_h = win_w//cSize, win_h//cSize
+        outimg = pg.Surface((zoomed_w, zoomed_h)).convert()
 
         if toggler : updateDelayer+=1
         if updateDelayer>=simFrame:
@@ -139,9 +143,9 @@ def main():
 
         screen.fill(0)
 
-        pg.surfarray.blit_array(outimg, lifeLayer.grid * 0xFFFFFF)
-
-        rescaled_img = pg.transform.scale(outimg, (cur_w, cur_h))
+        pg.surfarray.blit_array(outimg, lifeLayer.grid[adjust_x:adjust_x+zoomed_w, adjust_y:adjust_y+zoomed_h] * 0xFFFFFF)
+        # 16777215
+        rescaled_img = pg.transform.scale(outimg, (win_w, win_h))
         screen.blit(rescaled_img, (0,0))
 
         # if true, displays the fps in the upper left corner, for debugging

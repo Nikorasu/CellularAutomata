@@ -121,8 +121,9 @@ def main():
         for e in pg.event.get():
             if e.type == pg.QUIT : return
             elif e.type == pg.MOUSEBUTTONDOWN:
-                if e.button == 1 : lifeLayer.poke(pg.mouse.get_pos(), cSize, adjust_x, adjust_y, True)
-                elif e.button == 3 : lifeLayer.poke(pg.mouse.get_pos(), cSize, adjust_x, adjust_y, False)
+                mousepos = pg.mouse.get_pos()
+                if e.button == 1 : lifeLayer.poke(mousepos, cSize, adjust_x, adjust_y, True)
+                elif e.button == 3 : lifeLayer.poke(mousepos, cSize, adjust_x, adjust_y, False)
             elif e.type == pg.KEYDOWN:
                 if e.key == pg.K_q or e.key == pg.K_ESCAPE : return
                 elif e.key == pg.K_SPACE or e.key==pg.K_KP_ENTER or e.key==pg.K_RETURN : toggler = not toggler
@@ -140,14 +141,14 @@ def main():
                 if e.key == pg.K_LEFT : adjust_x -= scaled_x//10
                 if e.key == pg.K_RIGHT : adjust_x += scaled_x//10
                 if e.key == pg.K_KP_MINUS and cSize > 1:
-                    old_cx, old_cy = scaled_x//2, scaled_y//2
+                    old_cx, old_cy = centerx, centery
                     cSize -= 1
                     scaled_x, scaled_y = cur_w//cSize, cur_h//cSize
                     centerx, centery = scaled_x//2, scaled_y//2
                     adjust_x += (old_cx - centerx)
                     adjust_y += (old_cy - centery)
                 if e.key == pg.K_KP_PLUS and cSize < 16:
-                    old_cx, old_cy = scaled_x//2, scaled_y//2
+                    old_cx, old_cy = centerx, centery
                     cSize += 1
                     scaled_x, scaled_y = cur_w//cSize, cur_h//cSize
                     centerx, centery = scaled_x//2, scaled_y//2
