@@ -44,7 +44,7 @@ class LifeGrid():
         self.grid[(alive & (two | three)) | ((~alive) & three)] = 1
 
     def poke(self, pos, cSize, off_x, off_y, status):
-        spot = ((pos[0]-3)//cSize)+off_x, ((pos[1]-4)//cSize)+off_y  # edge rounding weird
+        spot = ((pos[0]-2)//cSize)+off_x, ((pos[1]-4)//cSize)+off_y  # edge rounding weird
         if spot[0]==self.size[0] : spot = 0,spot[1]
         if spot[1]==self.size[1] : spot = spot[0],0
         self.grid[spot] = status
