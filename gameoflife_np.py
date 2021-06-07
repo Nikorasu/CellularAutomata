@@ -69,6 +69,11 @@ def main():
         pattern = reader(patfile)
         patcoords = { (int(x), int(y)) for x,y in pattern }
 
+    #patcoords = {(0,0),(-1,0),(-1,1),(-2,2),(-3,2),(-4,2),  # Lidka
+    #            (2,-2),(2,-3),(3,-2),(4,-2),(4,0),(4,1),(4,2)}
+    #patcoords = {(0,0),(0,1),(0,2),(1,0),(-1,1),(3,0),(4,0),(4,-1)}  # 7468M
+    #patcoords = {(0,0),(0,1),(0,2),(1,0),(-1,1)}  # R-pentomino
+
     lifeLayer = LifeGrid(nativeRez, patcoords)
 
     simFrame = 1  # starting speed
