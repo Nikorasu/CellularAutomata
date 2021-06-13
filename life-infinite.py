@@ -28,18 +28,15 @@ class LifeGrid(dict):
         total = (self[x,(y-1)] + self[x,(y+1)] + self[(x-1),y] +
                 self[(x+1),y] + self[(x-1),(y-1)] + self[(x-1),(y+1)] +
                 self[(x+1),(y-1)] + self[(x+1),(y+1)])
-        live, dead = [], []
+        live, dead = set(), set()
         # sim rules
         if total == 3 and not self[x, y]:
-            #live = (x,y)
-            live.append((x, y)) # could check if too far away
+            live.add((x, y)) # could check if too far away
         elif not 2 <= total <= 3 and self[x, y]:
-            #dead = (x,y)
-            dead.append((x, y))
+            dead.add((x, y))
         return live, dead
 
     def queue_cells(self):
-        #cells = []
         cells = set()
         for x, y in self.keys():
             # Add all cell neighbors to the function.
@@ -48,18 +45,14 @@ class LifeGrid(dict):
             for x_coord in x_coords:
                 for y_coord in y_coords:
                     cells.add((x_coord, y_coord))
-                    #cells.append((x_coord, y_coord))
         return cells
 
     def play_game(self):
         live, dead = set(), set()
-        #live, dead = [], []
         for x, y in self.queue_cells():
             step_live, step_dead = self.check_cell(x, y)
             live.update(step_live)
             dead.update(step_dead)
-            #live += step_live
-            #dead += step_dead
         # Grid doesn't change until every cell is accounted for.
         for x, y in dead:
             if self[x, y] : del self[x, y]
@@ -85,27 +78,19 @@ def main():
     centerx, centery = scaled_x//2, scaled_y//2
 
     patdict = {}
-    with open('patterns/ripconway') as patfile:
+    with open('patterns/symfiller') as patfile:
         pattern = reader(patfile)
         for px, py in pattern:
             patdict[centerx+int(px), centery+int(py)] = 1
     lifeLayer = LifeGrid(patdict)
-    '''
-    lifeLayer = LifeGrid({  # Lidka
-        (centerx+0, centery+0): 1,
-        (centerx-1, centery+0): 1,
-        (centerx-1, centery+1): 1,
-        (centerx-2, centery+2): 1,
-        (centerx-3, centery+2): 1,
-        (centerx-4, centery+2): 1,
-        (centerx+2, centery-2): 1,
-        (centerx+2, centery-3): 1,
-        (centerx+3, centery-2): 1,
-        (centerx+4, centery-2): 1,
-        (centerx+4, centery+0): 1,
-        (centerx+4, centery+1): 1,
-        (centerx+4, centery+2): 1,
-    })'''
+    #lifeLayer = LifeGrid({(centerx,centery):1,(centerx,centery+1):1,(centerx,centery+2):1,
+    #                    (centerx+1,centery):1,(centerx-1,centery+1):1})  # R-pentomino
+
+    '''lifeLayer = LifeGrid({(centerx+0, centery+0): 1, (centerx-1, centery+0): 1,  # Lidka
+        (centerx-1, centery+1): 1, (centerx-2, centery+2): 1, (centerx-3, centery+2): 1,
+        (centerx-4, centery+2): 1, (centerx+2, centery-2): 1, (centerx+2, centery-3): 1,
+        (centerx+3, centery-2): 1, (centerx+4, centery-2): 1, (centerx+4, centery+0): 1,
+        (centerx+4, centery+1): 1, (centerx+4, centery+2): 1})'''
 
     simFrame = 1  # starting speed
     toggler = False

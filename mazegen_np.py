@@ -26,9 +26,9 @@ class LifeGrid():
         for x,y in patcoords:
             self.grid[cenA_x+x, cenA_y+y] = 1
         self.neighbors = np.copy(self.grid)
-        #self.neighbors = np.zeros(self.size, np.int16)
 
     def runLife(self):
+        # if storing count in grid for color, reset grid [anything above 1] = 1
         self.neighbors[:] = 0
         for dx in [-1, 0, 1]:
             for dy in [-1, 0, 1]:
@@ -37,18 +37,23 @@ class LifeGrid():
                     np.add(self.neighbors, shifted, out=self.neighbors)
 
         alive = self.grid > 0
-        twos = self.neighbors == 2
-        threes = self.neighbors == 3
+        one = self.neighbors == 1
+        two = self.neighbors == 2
+        three = self.neighbors == 3
+        four = self.neighbors == 4
+        five = self.neighbors == 5
 
         self.grid[:] = 0  # zero out the current grid
         # lots of unnecessary copying here, but it's so elegant - Ghast's wizardry
-        self.grid[(alive & (twos | threes)) | ((~alive) & threes)] = 1
+        self.grid[(alive & (one | two | three | four | five)) | ((~alive) & three)] = 1
 
     def poke(self, pos, cSize, off_x, off_y, status):
         spot = ((pos[0]-2)//cSize)+off_x, ((pos[1]-4)//cSize)+off_y  # edge rounding weird
         if spot[0]==self.size[0] : spot = 0,spot[1]
         if spot[1]==self.size[1] : spot = spot[0],0
         self.grid[spot] = status
+        self.neighbors[spot] = status
+
 
 
 def main():
@@ -66,7 +71,7 @@ def main():
     centerx, centery = zoomed_w//2, zoomed_h//2
 
     patcoords = set()
-    with open('patterns/52513M') as patfile:
+    with open('patterns/lidka') as patfile:
         pattern = reader(patfile)
         patcoords = { (int(x), int(y)) for x,y in pattern }
 
@@ -77,7 +82,7 @@ def main():
 
     lifeLayer = LifeGrid(nativeRez, patcoords)
 
-    #colors = np.array([0, 0x999999, 0x008000, 0x0000FF, 0xFFFF00, 0xFFA500, 0xFF4500, 0xFF0000, 0xFF00FF])
+    colors = np.array([0, 0x999999, 0x008000, 0x0000FF, 0xFFFF00, 0xFFA500, 0xFF4500, 0xFF0000, 0xFF00FF])
 
     simFrame = 1  # starting speed
     toggler = False
@@ -144,11 +149,10 @@ def main():
             updateDelayer=0
             lifeLayer.runLife()
 
+        screen.fill(0)
         zoomed_w, zoomed_h = win_w//cSize, win_h//cSize
         outimg = pg.Surface((zoomed_w, zoomed_h)).convert()
-        screen.fill(0)
-        #color_grid = lifeLayer.grid * colors[lifeLayer.neighbors]
-        #color_grid = color1 * grid[neighbors == 0] + color2 * grid[neighbors == 1] + ...
+        #color_grid = colors[lifeLayer.neighbors] * lifeLayer.grid
         pg.surfarray.blit_array(outimg, lifeLayer.grid[adjust_x:adjust_x+zoomed_w, adjust_y:adjust_y+zoomed_h] * 16777215)
         # 16777215 0xFFFFFF
         rescaled_img = pg.transform.scale(outimg, (win_w, win_h))

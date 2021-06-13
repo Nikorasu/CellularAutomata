@@ -26,12 +26,12 @@ class LifeGrid(dict):
         total = (self[x,(y-1)] + self[x,(y+1)] + self[(x-1),y] +
                 self[(x+1),y] + self[(x-1),(y-1)] + self[(x-1),(y+1)] +
                 self[(x+1),(y-1)] + self[(x+1),(y+1)])
-        live, dead = [], []
+        live, dead = set(), set()
         # sim rules
         if total == 3 and not self[x, y]:
-            live.append((x, y))
+            live.add((x, y))
         elif total == 0 or total in range(5,8) and self[x, y]:  # total < 3 or total > 4  # not 2 <= total <= 3
-            dead.append((x, y))
+            dead.add((x, y))
         return live, dead
 
     def queue_cells(self):
