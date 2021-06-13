@@ -8,13 +8,15 @@ My attempt at a Game of Life simulation, using NumPy.
 Copyright (c) 2021  Nikolaus Stromberg  nikorasu85@gmail.com
 '''
 
-FLLSCRN = False          # True for Fullscreen, or False for Window
-WIDTH = 1200             # default 800
-HEIGHT = 800             # default 800
-PRATIO = 5               # starting cell pixel size
-FPS = 60                 # 30-90
-VSYNC = True             # limit frame rate to refresh rate
-SHOWFPS = True           # show framerate debug
+PATFILE = 'patterns/52513M'
+FLLSCRN = False         # True for Fullscreen, or False for Window
+COLOR = False           # Enables color mode, colors neighbor counts
+WIDTH = 1200            # default 800
+HEIGHT = 800            # default 800
+PRATIO = 5              # starting cell pixel size
+FPS = 60                # 30-90
+VSYNC = True            # limit frame rate to refresh rate
+SHOWFPS = True          # show framerate debug
 
 
 class LifeGrid():
@@ -26,7 +28,6 @@ class LifeGrid():
         for x,y in patcoords:
             self.grid[cenA_x+x, cenA_y+y] = 1
         self.neighbors = np.copy(self.grid)
-        #self.neighbors = np.zeros(self.size, np.int16)
 
     def runLife(self):
         self.neighbors[:] = 0
@@ -49,6 +50,7 @@ class LifeGrid():
         if spot[0]==self.size[0] : spot = 0,spot[1]
         if spot[1]==self.size[1] : spot = spot[0],0
         self.grid[spot] = status
+        if COLOR : self.neighbors[spot] = status
 
 
 def main():
@@ -65,19 +67,19 @@ def main():
     zoomed_w, zoomed_h = win_w//cSize, win_h//cSize
     centerx, centery = zoomed_w//2, zoomed_h//2
 
-    patcoords = set()
-    with open('patterns/52513M') as patfile:
-        pattern = reader(patfile)
-        patcoords = { (int(x), int(y)) for x,y in pattern }
-
-    #patcoords = {(0,0),(-1,0),(-1,1),(-2,2),(-3,2),(-4,2),  # Lidka
-    #            (2,-2),(2,-3),(3,-2),(4,-2),(4,0),(4,1),(4,2)}
+    try:
+        patcoords = set()
+        with open(PATFILE) as pattern:
+            patcoords = { (int(x), int(y)) for x,y in reader(pattern) }
+    except:
+        patcoords = {(0,0),(-1,0),(-1,1),(-2,2),(-3,2),(-4,2),  # Lidka
+                    (2,-2),(2,-3),(3,-2),(4,-2),(4,0),(4,1),(4,2)}
     #patcoords = {(0,0),(0,1),(0,2),(1,0),(-1,1),(3,0),(4,0),(4,-1)}  # 7468M
     #patcoords = {(0,0),(0,1),(0,2),(1,0),(-1,1)}  # R-pentomino
 
     lifeLayer = LifeGrid(nativeRez, patcoords)
 
-    #colors = np.array([0, 0x999999, 0x008000, 0x0000FF, 0xFFFF00, 0xFFA500, 0xFF4500, 0xFF0000, 0xFF00FF])
+    colors = np.array([0, 0x999999, 0x008000, 0x0000FF, 0xFFFF00, 0xFFA500, 0xFF4500, 0xFF0000, 0xFF00FF])
 
     simFrame = 1  # starting speed
     toggler = False
@@ -147,10 +149,13 @@ def main():
         zoomed_w, zoomed_h = win_w//cSize, win_h//cSize
         outimg = pg.Surface((zoomed_w, zoomed_h)).convert()
         screen.fill(0)
-        #color_grid = lifeLayer.grid * colors[lifeLayer.neighbors]
-        #color_grid = color1 * grid[neighbors == 0] + color2 * grid[neighbors == 1] + ...
-        pg.surfarray.blit_array(outimg, lifeLayer.grid[adjust_x:adjust_x+zoomed_w, adjust_y:adjust_y+zoomed_h] * 16777215)
-        # 16777215 0xFFFFFF
+
+        if COLOR:
+            color_grid = colors[lifeLayer.neighbors]# * lifeLayer.grid
+            pg.surfarray.blit_array(outimg, color_grid[adjust_x:adjust_x+zoomed_w, adjust_y:adjust_y+zoomed_h])
+        else:  # 16777215 0xFFFFFF
+            pg.surfarray.blit_array(outimg, lifeLayer.grid[adjust_x:adjust_x+zoomed_w, adjust_y:adjust_y+zoomed_h] * 16777215)
+
         rescaled_img = pg.transform.scale(outimg, (win_w, win_h))
         screen.blit(rescaled_img, (0,0))
         # if true, displays the fps in the upper left corner, for debugging

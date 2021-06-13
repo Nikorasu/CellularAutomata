@@ -67,7 +67,7 @@ def main():
     centerx, centery = zoomed_w//2, zoomed_h//2
 
     patcoords = set()
-    with open('patterns/breeder2') as patfile:
+    with open('patterns/symfiller') as patfile:
         pattern = reader(patfile)
         patcoords = { (int(x), int(y)) for x,y in pattern }
 
