@@ -4,7 +4,7 @@ import numpy as np
 import re
 
 '''
-My attempt at a Game of Life simulation, using NumPy.
+A Game of Life simulation, using NumPy, and with RLE support!
 Copyright (c) 2021  Nikolaus Stromberg  nikorasu85@gmail.com
 '''
 
