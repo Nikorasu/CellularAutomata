@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
 import pygame as pg
 import numpy as np
-from csv import reader
+import re
 
 '''
 My attempt at a Game of Life simulation, using NumPy.
 Copyright (c) 2021  Nikolaus Stromberg  nikorasu85@gmail.com
 '''
 
-PATFILE = 'patterns/52513M'
+PATFILE = 'patterns/64mil.rle'
 FLLSCRN = False         # True for Fullscreen, or False for Window
 COLOR = False           # Enables color mode, colors neighbor counts
 WIDTH = 1200            # default 800
@@ -20,13 +20,12 @@ SHOWFPS = True          # show framerate debug
 
 
 class LifeGrid():
-    def __init__(self, maxSize, patcoords):
+    def __init__(self, maxSize, pattern):
         self.size = maxSize
         self.grid = np.zeros(self.size, np.int16)
-        cenA_x = self.size[0]//2
-        cenA_y = self.size[1]//2
-        for x,y in patcoords:
-            self.grid[cenA_x+x, cenA_y+y] = 1
+        cen_x = (self.size[0]//2) - (pattern.shape[0]//2)
+        cen_y = (self.size[1]//2) - (pattern.shape[1]//2)
+        self.grid[cen_x:cen_x+pattern.shape[0], cen_y:cen_y+pattern.shape[1]] = pattern
         self.neighbors = np.copy(self.grid)
 
     def runLife(self):
@@ -50,7 +49,41 @@ class LifeGrid():
         if spot[0]==self.size[0] : spot = 0,spot[1]
         if spot[1]==self.size[1] : spot = spot[0],0
         self.grid[spot] = status
-        if COLOR : self.neighbors[spot] = status
+        self.neighbors[spot] = status
+
+def readRLE(contents):
+    data = ''
+    dline = len(contents)
+
+    for num, line in enumerate(contents):
+        if line.startswith('x'):
+            x,y = [int(s) for s in re.findall(r'\d+',line)][:2]
+            dline = num+1
+        if num >= dline : data += line
+
+    pattern = np.zeros((x,y), np.int16)
+    splitdata = [s for s in re.split("([0-9]*[^0-9])", data) if s != ""]
+
+    cx, cy = 0, 0
+    for sd in splitdata:
+        if sd[0].isdigit():
+            for c in range(int(sd[:-1])):
+                if sd[-1] == 'b' : pattern[cx+c,cy] = 0
+                elif sd[-1] == 'o' : pattern[cx+c,cy] = 1
+                elif sd[-1] == '$':
+                    cy += 1
+                    cx = 0
+            if sd[-1] == 'b' or sd[-1] == 'o' : cx += int(sd[:-1])
+        elif sd == '!': return pattern
+        elif sd == '$':
+            cy += 1
+            cx = 0
+        elif sd == 'b':
+            pattern[cx,cy] = 0
+            cx += 1
+        elif sd == 'o':
+            pattern[cx,cy] = 1
+            cx += 1
 
 
 def main():
@@ -61,32 +94,29 @@ def main():
     if FLLSCRN : screen = pg.display.set_mode(nativeRez, pg.SCALED | pg.NOFRAME | pg.FULLSCREEN, vsync=VSYNC)
     else: screen = pg.display.set_mode((WIDTH, HEIGHT), pg.SCALED, vsync=VSYNC)
 
+    simFrame = 1  # starting speed
     cSize = PRATIO
+    colorTog = COLOR
     full_w, full_h = nativeRez
     win_w, win_h = screen.get_size()
     zoomed_w, zoomed_h = win_w//cSize, win_h//cSize
     centerx, centery = zoomed_w//2, zoomed_h//2
+    adjust_x, adjust_y = (full_w//2)-centerx, (full_h//2)-centery
 
     try:
-        patcoords = set()
-        with open(PATFILE) as pattern:
-            patcoords = { (int(x), int(y)) for x,y in reader(pattern) }
+        with open(PATFILE) as file : contents = file.read().splitlines()
+        pattern = readRLE(contents)
     except:
-        patcoords = {(0,0),(-1,0),(-1,1),(-2,2),(-3,2),(-4,2),  # Lidka
-                    (2,-2),(2,-3),(3,-2),(4,-2),(4,0),(4,1),(4,2)}
-    #patcoords = {(0,0),(0,1),(0,2),(1,0),(-1,1),(3,0),(4,0),(4,-1)}  # 7468M
-    #patcoords = {(0,0),(0,1),(0,2),(1,0),(-1,1)}  # R-pentomino
+        pattern = np.array([[0, 1, 1], [1, 1, 0], [0, 1, 0]])  # R-pentomino
 
-    life = LifeGrid(nativeRez, patcoords)
+    life = LifeGrid(nativeRez, pattern)
 
     colors = np.array([0, 0x999999, 0x008000, 0x0000FF, 0xFFFF00, 0xFFA500, 0xFF4500, 0xFF0000, 0xFF00FF])
 
-    simFrame = 1  # starting speed
     toggler = False
     updateDelayer = 0
     clock = pg.time.Clock()
     if SHOWFPS : font = pg.font.Font(None, 30)
-    adjust_x, adjust_y = (full_w//2)-centerx, (full_h//2)-centery
 
     # main loop
     while True:
@@ -100,7 +130,7 @@ def main():
                 if e.button == 3 : life.poke(mousepos, cSize, adjust_x, adjust_y, 0)
             elif e.type == pg.KEYDOWN:
                 if e.key == pg.K_q or e.key == pg.K_ESCAPE : return
-                elif e.key == pg.K_SPACE or e.key==pg.K_KP_ENTER or e.key==pg.K_RETURN : toggler = ~toggler
+                elif e.key==pg.K_SPACE or e.key==pg.K_KP_ENTER or e.key==pg.K_RETURN : toggler = ~toggler
                 elif e.key == pg.K_KP1 or e.key == pg.K_1 : simFrame = 1
                 elif e.key == pg.K_KP2 or e.key == pg.K_2 : simFrame = 3
                 elif e.key == pg.K_KP3 or e.key == pg.K_3 : simFrame = 5
@@ -110,19 +140,20 @@ def main():
                 elif e.key == pg.K_KP7 or e.key == pg.K_7 : simFrame = 20
                 elif e.key == pg.K_KP8 or e.key == pg.K_8 : simFrame = 28
                 elif e.key == pg.K_KP9 or e.key == pg.K_9 : simFrame = 42
-                if e.key == pg.K_UP and adjust_y > 0:
+                elif e.key == pg.K_KP0 or e.key == pg.K_0 or e.key == pg.K_c : colorTog = ~colorTog
+                if (e.key == pg.K_w or e.key == pg.K_i or e.key == pg.K_UP) and adjust_y > 0:
                     adjust_y -= zoomed_h//10
                     if adjust_y < 0 : adjust_y = 0
-                if e.key == pg.K_DOWN and adjust_y < full_h:
+                if (e.key == pg.K_s or e.key == pg.K_k or e.key == pg.K_DOWN) and adjust_y < full_h:
                     adjust_y += zoomed_h//10
                     if adjust_y+zoomed_h > full_h: adjust_y = full_h-zoomed_h
-                if e.key == pg.K_LEFT and adjust_x > 0:
+                if (e.key == pg.K_a or e.key == pg.K_j or e.key == pg.K_LEFT) and adjust_x > 0:
                     adjust_x -= zoomed_w//10
                     if adjust_x < 0 : adjust_x = 0
-                if e.key == pg.K_RIGHT and adjust_x < full_w:
+                if (e.key == pg.K_d or e.key == pg.K_l or e.key == pg.K_RIGHT) and adjust_x < full_w:
                     adjust_x += zoomed_w//10
                     if adjust_x+zoomed_w > full_w: adjust_x = full_w-zoomed_w
-                if e.key == pg.K_KP_MINUS and cSize > 1:
+                if (e.key == pg.K_MINUS or e.key == pg.K_KP_MINUS) and cSize > 1:
                     old_cx, old_cy = centerx, centery
                     cSize -= 1
                     zoomed_w, zoomed_h = win_w//cSize, win_h//cSize
@@ -133,7 +164,7 @@ def main():
                     elif adjust_x < 0 : adjust_x = 0
                     if adjust_y+zoomed_h > full_h : adjust_y -= (adjust_y + zoomed_h) - full_h
                     elif adjust_y < 0 : adjust_y = 0
-                if e.key == pg.K_KP_PLUS and cSize < 12:
+                if (e.key == pg.K_EQUALS or e.key == pg.K_KP_PLUS) and cSize < 12:
                     old_cx, old_cy = centerx, centery
                     cSize += 1
                     zoomed_w, zoomed_h = win_w//cSize, win_h//cSize
@@ -148,15 +179,15 @@ def main():
 
         zoomed_w, zoomed_h = win_w//cSize, win_h//cSize
         outimg = pg.Surface((zoomed_w, zoomed_h)).convert()
-        screen.fill(0)
 
-        if COLOR:
+        if colorTog:
             color_grid = colors[life.neighbors]# * life.grid
             pg.surfarray.blit_array(outimg, color_grid[adjust_x:adjust_x+zoomed_w, adjust_y:adjust_y+zoomed_h])
         else:  # 16777215 0xFFFFFF
             pg.surfarray.blit_array(outimg,life.grid[adjust_x:adjust_x+zoomed_w,adjust_y:adjust_y+zoomed_h]*16777215)
 
         rescaled_img = pg.transform.scale(outimg, (win_w, win_h))
+        screen.fill(0)
         screen.blit(rescaled_img, (0,0))
         # if true, displays the fps in the upper left corner, for debugging
         if SHOWFPS : screen.blit(font.render(str(int(clock.get_fps())), True, [0,200,0]), (8, 8))
