@@ -8,16 +8,16 @@ A Game of Life simulation, using NumPy, and with RLE support!
 Copyright (c) 2021  Nikolaus Stromberg  nikorasu85@gmail.com
 '''
 
-PATFILE = 'patterns/64mil.rle'
-FLLSCRN = False         # True for Fullscreen, or False for Window
-COLOR = False           # Enables color mode, colors neighbor counts
-WIDTH = 1200            # default 800
-HEIGHT = 800            # default 800
+PATFILE = 'patterns/95mil.rle'
+SHOWGEN = True          # Shows generation count
+COLOR = False           # Colors by neighbor counts
 PRATIO = 5              # starting cell pixel size
-FPS = 60                # 30-90
-VSYNC = True            # limit frame rate to refresh rate
-SHOWFPS = True          # show framerate debug
-
+WIDTH = 1200            # window width, default 1200
+HEIGHT = 800            # window height, default 800
+FLLSCRN = False         # True for fullscreen, False for window
+FPS = 60                # overall target framerate
+VSYNC = True            # Limit frame rate to refresh rate
+SHOWFPS = True          # Show framerate debug
 
 class LifeGrid():
     def __init__(self, maxSize, pattern):
@@ -85,7 +85,6 @@ def readRLE(contents):
             pattern[cx,cy] = 1
             cx += 1
 
-
 def main():
     pg.init()  # prepare window
     pg.display.set_caption("Life")
@@ -114,14 +113,13 @@ def main():
     colors = np.array([0, 0x999999, 0x008000, 0x0000FF, 0xFFFF00, 0xFFA500, 0xFF4500, 0xFF0000, 0xFF00FF])
 
     toggler = False
-    updateDelayer = 0
+    genCount, updateDelayer = 0, 0
     clock = pg.time.Clock()
-    if SHOWFPS : font = pg.font.Font(None, 30)
+    font = pg.font.Font(None, 30)  # if SHOWFPS:
 
     # main loop
     while True:
         clock.tick(FPS)
-
         for e in pg.event.get():
             if e.type == pg.QUIT : return
             elif e.type == pg.MOUSEBUTTONDOWN:
@@ -172,9 +170,9 @@ def main():
                     adjust_x += (old_cx - centerx)
                     adjust_y += (old_cy - centery)
 
-        if toggler : updateDelayer+=1
+        if toggler : updateDelayer += 1
         if updateDelayer>=simFrame:
-            updateDelayer=0
+            genCount, updateDelayer = genCount+1, 0
             life.runLife()
 
         zoomed_w, zoomed_h = win_w//cSize, win_h//cSize
@@ -189,11 +187,13 @@ def main():
         rescaled_img = pg.transform.scale(outimg, (win_w, win_h))
         screen.fill(0)
         screen.blit(rescaled_img, (0,0))
-        # if true, displays the fps in the upper left corner, for debugging
+        if SHOWGEN:
+            gentxt = font.render(str(genCount), True, [100,100,100])
+            gentxt_rect = gentxt.get_rect(center=(win_w/2, 20))
+            screen.blit(gentxt, gentxt_rect)
+        # displays the fps in the upper left corner, for debugging
         if SHOWFPS : screen.blit(font.render(str(int(clock.get_fps())), True, [0,200,0]), (8, 8))
-
         pg.display.update()
-
 
 if __name__ == '__main__':
     main()  # by Nik
