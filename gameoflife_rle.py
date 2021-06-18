@@ -4,18 +4,19 @@ import numpy as np
 import re
 
 '''
-A Game of Life simulation, using NumPy, and with RLE support!
+Conway's Game of Life simulation, using NumPy, and with RLE support!
 Copyright (c) 2021  Nikolaus Stromberg  nikorasu85@gmail.com
 '''
 
-PATFILE = 'patterns/95mil.rle'
-SHOWGEN = True          # Shows generation count
-COLOR = False           # Colors by neighbor counts
+PATFILE = 'patterns/64mil.rle'
+SHOWGEN = True          # show generation count
+MAPSIZE = 2000          # size of available simulation space
+COLOR = False           # start with color mode, or black and white
 PRATIO = 5              # starting cell pixel size
 WIDTH = 1200            # window width, default 1200
 HEIGHT = 800            # window height, default 800
 FLLSCRN = False         # True for fullscreen, False for window
-FPS = 60                # overall target framerate
+FPS = 60                # overall target framerate/limit
 VSYNC = True            # Limit frame rate to refresh rate
 SHOWFPS = True          # Show framerate debug
 
@@ -96,7 +97,7 @@ def main():
     simFrame = 1  # starting speed
     cSize = PRATIO
     colorTog = COLOR
-    full_w, full_h = nativeRez
+    full_w, full_h = MAPSIZE, MAPSIZE
     win_w, win_h = screen.get_size()
     zoomed_w, zoomed_h = win_w//cSize, win_h//cSize
     centerx, centery = zoomed_w//2, zoomed_h//2
@@ -108,8 +109,7 @@ def main():
     except:
         pattern = np.array([[0, 1, 1], [1, 1, 0], [0, 1, 0]])  # R-pentomino
 
-    life = LifeGrid(nativeRez, pattern)
-
+    life = LifeGrid((full_w,full_h), pattern)
     colors = np.array([0, 0x999999, 0x008000, 0x0000FF, 0xFFFF00, 0xFFA500, 0xFF4500, 0xFF0000, 0xFF00FF])
 
     toggler = False
