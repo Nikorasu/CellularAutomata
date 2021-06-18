@@ -4,7 +4,7 @@ import numpy as np
 from csv import reader
 
 '''
-My attempt at a Game of Life simulation, using NumPy.
+A Cellular Automata using Mazectric ruleset, using NumPy.
 Copyright (c) 2021  Nikolaus Stromberg  nikorasu85@gmail.com
 '''
 
