@@ -12,13 +12,13 @@ PATFILE = 'patterns/64mil.rle'
 SHOWGEN = True          # show generation count
 MAPSIZE = 2000          # size of available simulation space
 COLOR = False           # start with color mode, or black and white
-PRATIO = 5              # starting cell pixel size
+PRATIO = 5              # starting size of individual cells
 WIDTH = 1200            # window width, default 1200
 HEIGHT = 800            # window height, default 800
 FLLSCRN = False         # True for fullscreen, False for window
 FPS = 60                # overall target framerate/limit
-VSYNC = True            # Limit frame rate to refresh rate
-SHOWFPS = True          # Show framerate debug
+VSYNC = True            # limit frame rate to refresh rate
+SHOWFPS = True          # show framerate debug
 
 class LifeGrid():
     def __init__(self, maxSize, pattern):
