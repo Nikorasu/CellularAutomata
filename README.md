@@ -3,13 +3,13 @@
 ### Conway's Game of Life
 `gameoflife.py` is my attempt at a Game of Life simulation. Uses Pygame, Numpy and RE.
 Includes controls to move around and zoom, change speed, or toggle color-mode.
+It can also load pre-made complex life patterns from RLE files.
 I've also made several alternative versions, `life-infdict.py` uses a dictionary so
 gliders and such can travel outward "forever". Other versions in 'old' folder.
 
 ### Maze-like generation rule
-`mazegen.py` is a version of life, with additional rules which result in maze-like patterns.
+`mazegen.py` is a version of life, with additional rules that result in maze-like patterns.
 Rules: B3/S12345 (or B3/S1234 for mazectric rules)
-
 
 For more information, and future updates,
 [see github page](https://github.com/Nikorasu/CellularAutomata "Cellular Automata - GitHub").
@@ -30,5 +30,7 @@ For more information, and future updates,
         If not, see: https://www.gnu.org/licenses/gpl-3.0.html
 
 ###### Copyright (c) 2021  Nikolaus Stromberg - nikorasu85@gmail.com
+
+---
 
 ![ripconway](rip_john_conway.gif "RIP John Conway")
