@@ -4,11 +4,11 @@ import numpy as np
 import re
 
 '''
-Conway's Game of Life simulation, using NumPy, and with RLE support!
+A Conway's Game of Life simulation, using NumPy, and with RLE support!
 Copyright (c) 2021  Nikolaus Stromberg  nikorasu85@gmail.com
 '''
 
-PATFILE = 'patterns/95mil.rle'
+PATFILE = 'patterns/64m.rle'
 SHOWGEN = True          # show generation count
 MAPSIZE = 2000          # size of available simulation space
 COLOR = False           # start with color mode, or black and white

@@ -3,7 +3,7 @@ import pygame as pg
 from csv import reader
 
 '''
-This is a Conway's Game of Life simulation, using a dictionary class.
+A Conway's Game of Life simulation, using a dictionary class.
 By Nikolaus Stromberg  2021  nikorasu85@gmail.com
 Uses methods from github.com/madelyneriksen/game-of-life
 '''
