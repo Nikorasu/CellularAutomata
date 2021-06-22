@@ -78,7 +78,7 @@ def main():
     centerx, centery = scaled_x//2, scaled_y//2
 
     patdict = {}
-    with open('patterns/symfiller') as patfile:
+    with open('old/52513M') as patfile:
         pattern = reader(patfile)
         for px, py in pattern:
             patdict[centerx+int(px), centery+int(py)] = 1

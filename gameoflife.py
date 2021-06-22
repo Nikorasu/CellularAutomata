@@ -8,7 +8,7 @@ A Conway's Game of Life simulation, using NumPy, and with RLE support!
 Copyright (c) 2021  Nikolaus Stromberg  nikorasu85@gmail.com
 '''
 
-PATFILE = 'patterns/64m.rle'
+PATFILE = 'patterns/95m.rle'
 SHOWGEN = True          # show generation count
 MAPSIZE = 2000          # size of available simulation space
 COLOR = False           # start with color mode, or black and white
