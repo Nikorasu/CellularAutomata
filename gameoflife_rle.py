@@ -8,7 +8,7 @@ Conway's Game of Life simulation, using NumPy, and with RLE support!
 Copyright (c) 2021  Nikolaus Stromberg  nikorasu85@gmail.com
 '''
 
-PATFILE = 'patterns/64mil.rle'
+PATFILE = 'patterns/95mil.rle'
 SHOWGEN = True          # show generation count
 MAPSIZE = 2000          # size of available simulation space
 COLOR = False           # start with color mode, or black and white
@@ -125,7 +125,7 @@ def main():
             elif e.type == pg.MOUSEBUTTONDOWN:
                 mousepos = pg.mouse.get_pos()
                 if e.button == 1 : life.poke(mousepos, cSize, adjust_x, adjust_y, 1)
-                if e.button == 3 : life.poke(mousepos, cSize, adjust_x, adjust_y, 0)
+                elif e.button == 3 : life.poke(mousepos, cSize, adjust_x, adjust_y, 0)
             elif e.type == pg.KEYDOWN:
                 if e.key == pg.K_q or e.key == pg.K_ESCAPE : return
                 elif e.key==pg.K_SPACE or e.key==pg.K_KP_ENTER or e.key==pg.K_RETURN : toggler = ~toggler
@@ -139,19 +139,19 @@ def main():
                 elif e.key == pg.K_KP8 or e.key == pg.K_8 : simFrame = 28
                 elif e.key == pg.K_KP9 or e.key == pg.K_9 : simFrame = 42
                 elif e.key == pg.K_KP0 or e.key == pg.K_0 or e.key == pg.K_c : colorTog = ~colorTog
-                if (e.key == pg.K_w or e.key == pg.K_i or e.key == pg.K_UP) and adjust_y > 0:
-                    adjust_y -= zoomed_h//10
+                elif (e.key == pg.K_w or e.key == pg.K_i or e.key == pg.K_UP) and adjust_y > 0:
+                    adjust_y -= zoomed_h//5
                     if adjust_y < 0 : adjust_y = 0
-                if (e.key == pg.K_s or e.key == pg.K_k or e.key == pg.K_DOWN) and adjust_y < full_h:
-                    adjust_y += zoomed_h//10
+                elif (e.key == pg.K_s or e.key == pg.K_k or e.key == pg.K_DOWN) and adjust_y < full_h:
+                    adjust_y += zoomed_h//5
                     if adjust_y+zoomed_h > full_h: adjust_y = full_h-zoomed_h
-                if (e.key == pg.K_a or e.key == pg.K_j or e.key == pg.K_LEFT) and adjust_x > 0:
-                    adjust_x -= zoomed_w//10
+                elif (e.key == pg.K_a or e.key == pg.K_j or e.key == pg.K_LEFT) and adjust_x > 0:
+                    adjust_x -= zoomed_w//5
                     if adjust_x < 0 : adjust_x = 0
-                if (e.key == pg.K_d or e.key == pg.K_l or e.key == pg.K_RIGHT) and adjust_x < full_w:
-                    adjust_x += zoomed_w//10
+                elif (e.key == pg.K_d or e.key == pg.K_l or e.key == pg.K_RIGHT) and adjust_x < full_w:
+                    adjust_x += zoomed_w//5
                     if adjust_x+zoomed_w > full_w: adjust_x = full_w-zoomed_w
-                if (e.key == pg.K_MINUS or e.key == pg.K_KP_MINUS) and cSize > 1:
+                elif (e.key == pg.K_MINUS or e.key == pg.K_KP_MINUS) and cSize > 1:
                     old_cx, old_cy = centerx, centery
                     cSize -= 1
                     zoomed_w, zoomed_h = win_w//cSize, win_h//cSize
@@ -162,7 +162,7 @@ def main():
                     elif adjust_x < 0 : adjust_x = 0
                     if adjust_y+zoomed_h > full_h : adjust_y -= (adjust_y + zoomed_h) - full_h
                     elif adjust_y < 0 : adjust_y = 0
-                if (e.key == pg.K_EQUALS or e.key == pg.K_KP_PLUS) and cSize < 12:
+                elif (e.key == pg.K_EQUALS or e.key == pg.K_KP_PLUS) and cSize < 12:
                     old_cx, old_cy = centerx, centery
                     cSize += 1
                     zoomed_w, zoomed_h = win_w//cSize, win_h//cSize
