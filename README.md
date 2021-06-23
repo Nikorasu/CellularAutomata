@@ -33,4 +33,4 @@ For more information, and future updates,
 
 ---
 
-![ripconway](rip_john_conway.gif "RIP John Conway")
+![ripconway](patterns/rip_john_conway.gif "RIP John Conway")
