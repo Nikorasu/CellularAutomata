@@ -4,18 +4,17 @@ from csv import reader
 
 '''
 A Conway's Game of Life simulation, using a dictionary class.
-By Nikolaus Stromberg  2021  nikorasu85@gmail.com
+Copyright (c) 2021  Nikolaus Stromberg  nikorasu85@gmail.com
 Uses methods from github.com/madelyneriksen/game-of-life
 '''
 
-FLLSCRN = False          # True for Fullscreen, or False for Window
-WIDTH = 1200             # window Width
-HEIGHT = 800             # window Height
-CSIZE = 5                # starting cell pixel size
-FPS = 60                 # 30-90
-VSYNC = True             # limit frame rate to refresh rate
-SHOWFPS = True           # show framerate debug
-
+FLLSCRN = False         # True for Fullscreen, or False for Window
+WIDTH = 1200            # window width, default 1200
+HEIGHT = 800            # window height, default 800
+CSIZE = 5               # starting cell pixel size
+FPS = 60                # overall target framerate/limit
+VSYNC = True            # limit frame rate to refresh rate
+SHOWFPS = True          # show framerate debug
 
 class LifeGrid(dict):
     def __init__(self, *args, **kwargs):
@@ -72,32 +71,33 @@ def main():
         screen = pg.display.set_mode(currentRez, pg.SCALED | pg.NOFRAME | pg.FULLSCREEN, vsync=VSYNC)
     else: screen = pg.display.set_mode((WIDTH, HEIGHT), pg.SCALED, vsync=VSYNC)
 
+    simFrame = 1  # starting speed
     cSize = CSIZE
     cur_w, cur_h = screen.get_size()
     scaled_x, scaled_y = cur_w//cSize, cur_h//cSize
     centerx, centery = scaled_x//2, scaled_y//2
+    adjust_x, adjust_y = 0, 0
 
     patdict = {}
-    with open('old/52513M') as patfile:
-        pattern = reader(patfile)
-        for px, py in pattern:
-            patdict[centerx+int(px), centery+int(py)] = 1
-    lifeLayer = LifeGrid(patdict)
-    #lifeLayer = LifeGrid({(centerx,centery):1,(centerx,centery+1):1,(centerx,centery+2):1,
-    #                    (centerx+1,centery):1,(centerx-1,centery+1):1})  # R-pentomino
-
-    '''lifeLayer = LifeGrid({(centerx+0, centery+0): 1, (centerx-1, centery+0): 1,  # Lidka
+    try:
+        with open('old/52513M') as patfile:
+            pattern = reader(patfile)
+            for px, py in pattern:
+                patdict[centerx+int(px), centery+int(py)] = 1
+        lifeLayer = LifeGrid(patdict)
+    except:
+        lifeLayer = LifeGrid({(centerx,centery):1,(centerx,centery+1):1,  # R-pentomino
+        (centerx,centery+2):1,(centerx+1,centery):1,(centerx-1,centery+1):1})
+    ''' lifeLayer = LifeGrid({(centerx+0, centery+0): 1, (centerx-1, centery+0): 1,  # Lidka
         (centerx-1, centery+1): 1, (centerx-2, centery+2): 1, (centerx-3, centery+2): 1,
         (centerx-4, centery+2): 1, (centerx+2, centery-2): 1, (centerx+2, centery-3): 1,
         (centerx+3, centery-2): 1, (centerx+4, centery-2): 1, (centerx+4, centery+0): 1,
         (centerx+4, centery+1): 1, (centerx+4, centery+2): 1})'''
 
-    simFrame = 1  # starting speed
     toggler = False
     updateDelayer = 0
     clock = pg.time.Clock()
     if SHOWFPS : font = pg.font.Font(None, 30)
-    adjust_x, adjust_y = 0, 0
 
     # main loop
     while True:
@@ -159,12 +159,10 @@ def main():
         screen.fill(0)
         rescaled_img = pg.transform.scale(out_image, (cur_w, cur_h))
         screen.blit(rescaled_img, (0,0))
-
         # if true, displays the fps in the upper left corner, for debugging
         if SHOWFPS : screen.blit(font.render(str(int(clock.get_fps())), True, [0,200,0]), (8, 8))
 
         pg.display.update()
-
 
 if __name__ == '__main__':
     main()  # by Nik
