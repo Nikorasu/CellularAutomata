@@ -29,7 +29,7 @@ class LifeGrid():
         self.grid[cen_x:cen_x+pattern.shape[0], cen_y:cen_y+pattern.shape[1]] = pattern
         self.neighbors = np.copy(self.grid)
 
-    def runLife(self):
+    def countNeighbors(self):
         self.neighbors[:] = 0
         for dx in [-1, 0, 1]:
             for dy in [-1, 0, 1]:
@@ -37,10 +37,10 @@ class LifeGrid():
                     shifted = np.roll(self.grid, (dx, dy), (0, 1))
                     np.add(self.neighbors, shifted, out=self.neighbors)
 
+    def runLife(self):
         alive = self.grid > 0
         twos = self.neighbors == 2
         threes = self.neighbors == 3
-
         self.grid[:] = 0  # zero out the current grid
         # lots of unnecessary copying here, but it's so elegant - Ghast's wizardry
         self.grid[(alive & (twos | threes)) | ((~alive) & threes)] = 1
@@ -110,12 +110,13 @@ def main():
         pattern = np.array([[0, 1, 1], [1, 1, 0], [0, 1, 0]])  # R-pentomino
 
     life = LifeGrid((full_w,full_h), pattern)
-    colors = np.array([0, 0x626262, 0x0000FF, 0x00FF00, 0xFFFF00, 0xFFA500, 0xFF6400, 0xFF0000, 0xFF00FF])
+    colors = np.array([0, 0x999999, 0x0000FF, 0x00FF00, 0xFFFF00, 0xFFA500, 0xFF6400, 0xFF0000, 0xFF00FF])
+    #life.countNeighbors()
 
     toggler = False
+    font = pg.font.Font(None, 30)  # if SHOWFPS:
     genCount, updateDelayer = 0, 0
     clock = pg.time.Clock()
-    font = pg.font.Font(None, 30)  # if SHOWFPS:
 
     # main loop
     while True:
@@ -171,15 +172,13 @@ def main():
                     adjust_y += (old_cy - centery)
 
         if toggler : updateDelayer += 1
-        if updateDelayer>=simFrame:
-            genCount, updateDelayer = genCount+1, 0
-            life.runLife()
+        life.countNeighbors()
 
         zoomed_w, zoomed_h = win_w//cSize, win_h//cSize
         outimg = pg.Surface((zoomed_w, zoomed_h)).convert()
 
         if colorTog:
-            color_grid = colors[life.neighbors]# * life.grid
+            color_grid = colors[life.neighbors] * life.grid
             pg.surfarray.blit_array(outimg, color_grid[adjust_x:adjust_x+zoomed_w, adjust_y:adjust_y+zoomed_h])
         else:  # 16777215 0xFFFFFF
             pg.surfarray.blit_array(outimg,life.grid[adjust_x:adjust_x+zoomed_w,adjust_y:adjust_y+zoomed_h]*16777215)
@@ -193,7 +192,12 @@ def main():
             screen.blit(gentxt, gentxt_rect)
         # displays the fps in the upper left corner, for debugging
         if SHOWFPS : screen.blit(font.render(str(int(clock.get_fps())), True, [0,200,0]), (8, 8))
+
         pg.display.update()
+
+        if toggler and updateDelayer>=simFrame:
+            genCount, updateDelayer = genCount+1, 0
+            life.runLife()
 
 if __name__ == '__main__':
     main()  # by Nik
