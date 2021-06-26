@@ -96,7 +96,7 @@ def main():
 
     simFrame = 1  # starting speed
     cSize = PRATIO
-    colorTog = COLOR
+    colTog = COLOR
     full_w, full_h = MAPSIZE, MAPSIZE
     win_w, win_h = screen.get_size()
     zoomed_w, zoomed_h = win_w//cSize, win_h//cSize
@@ -111,11 +111,11 @@ def main():
 
     life = LifeGrid((full_w,full_h), pattern)
     colors = np.array([0, 0x999999, 0x0000FF, 0x00FF00, 0xFFFF00, 0xFFA500, 0xFF6400, 0xFF0000, 0xFF00FF])
-    #life.countNeighbors()
+    life.countNeighbors()
 
-    toggler = False
-    font = pg.font.Font(None, 30)  # if SHOWFPS:
+    toggler, neiTog = False, False
     genCount, updateDelayer = 0, 0
+    font = pg.font.Font(None, 30)
     clock = pg.time.Clock()
 
     # main loop
@@ -139,7 +139,8 @@ def main():
                 elif e.key == pg.K_KP7 or e.key == pg.K_7 : simFrame = 20
                 elif e.key == pg.K_KP8 or e.key == pg.K_8 : simFrame = 28
                 elif e.key == pg.K_KP9 or e.key == pg.K_9 : simFrame = 42
-                elif e.key == pg.K_KP0 or e.key == pg.K_0 or e.key == pg.K_c : colorTog = ~colorTog
+                elif e.key == pg.K_KP0 or e.key == pg.K_0 or e.key == pg.K_c : colTog = ~colTog
+                elif e.key == pg.K_KP_PERIOD or e.key == pg.K_n : neiTog = ~neiTog
                 elif (e.key == pg.K_w or e.key == pg.K_i or e.key == pg.K_UP) and adjust_y > 0:
                     adjust_y -= zoomed_h//5
                     if adjust_y < 0 : adjust_y = 0
@@ -171,17 +172,14 @@ def main():
                     adjust_x += (old_cx - centerx)
                     adjust_y += (old_cy - centery)
 
-        if toggler : updateDelayer += 1
-        life.countNeighbors()
-
         zoomed_w, zoomed_h = win_w//cSize, win_h//cSize
         outimg = pg.Surface((zoomed_w, zoomed_h)).convert()
 
-        if colorTog:
-            color_grid = colors[life.neighbors] * life.grid
+        if colTog:
+            color_grid = colors[life.neighbors] if neiTog else colors[life.neighbors] * life.grid
             pg.surfarray.blit_array(outimg, color_grid[adjust_x:adjust_x+zoomed_w, adjust_y:adjust_y+zoomed_h])
-        else:  # 16777215 0xFFFFFF
-            pg.surfarray.blit_array(outimg,life.grid[adjust_x:adjust_x+zoomed_w,adjust_y:adjust_y+zoomed_h]*16777215)
+        else:
+            pg.surfarray.blit_array(outimg,life.grid[adjust_x:adjust_x+zoomed_w,adjust_y:adjust_y+zoomed_h]*0xFFFFFF)
 
         rescaled_img = pg.transform.scale(outimg, (win_w, win_h))
         screen.fill(0)
@@ -195,9 +193,12 @@ def main():
 
         pg.display.update()
 
+        if toggler : updateDelayer += 1
+
         if toggler and updateDelayer>=simFrame:
             genCount, updateDelayer = genCount+1, 0
             life.runLife()
+            life.countNeighbors()
 
 if __name__ == '__main__':
     main()  # by Nik
