@@ -46,11 +46,12 @@ class LifeGrid():
         self.grid[(alive & (twos | threes)) | ((~alive) & threes)] = 1
 
     def poke(self, pos, cSize, off_x, off_y, status):
-        spot = ((pos[0]-2)//cSize)+off_x, ((pos[1]-4)//cSize)+off_y  # edge rounding weird
+        spot = (pos[0]//cSize)+off_x, (pos[1]//cSize)+off_y  # edge rounding weird
         if spot[0]==self.size[0] : spot = 0,spot[1]
         if spot[1]==self.size[1] : spot = spot[0],0
         self.grid[spot] = status
-        self.neighbors[spot] = status
+        self.countNeighbors()
+
 
 def readRLE(contents):
     data = ''
@@ -93,6 +94,7 @@ def main():
     nativeRez = (pg.display.Info().current_w, pg.display.Info().current_h)
     if FLLSCRN : screen = pg.display.set_mode(nativeRez, pg.SCALED | pg.NOFRAME | pg.FULLSCREEN, vsync=VSYNC)
     else: screen = pg.display.set_mode((WIDTH, HEIGHT), pg.SCALED, vsync=VSYNC)
+    pg.mouse.set_cursor(pg.cursors.broken_x)
 
     simFrame = 1  # starting speed
     cSize = PRATIO
@@ -194,7 +196,6 @@ def main():
         pg.display.update()
 
         if toggler : updateDelayer += 1
-
         if toggler and updateDelayer>=simFrame:
             genCount, updateDelayer = genCount+1, 0
             life.runLife()
