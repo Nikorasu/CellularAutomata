@@ -52,7 +52,6 @@ class LifeGrid():
         self.grid[spot] = status
         self.countNeighbors()
 
-
 def readRLE(contents):
     data = ''
     dline = len(contents)
