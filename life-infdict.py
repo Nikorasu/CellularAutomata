@@ -9,6 +9,7 @@ Uses methods from github.com/madelyneriksen/game-of-life
 '''
 
 FLLSCRN = False         # True for Fullscreen, or False for Window
+SHOWGEN = True          # show generation count
 WIDTH = 1200            # window width, default 1200
 HEIGHT = 800            # window height, default 800
 CSIZE = 5               # starting cell pixel size
@@ -95,7 +96,7 @@ def main():
         (centerx+4, centery+1): 1, (centerx+4, centery+2): 1})'''
 
     toggler = False
-    updateDelayer = 0
+    genCount, updateDelayer = 0, 0
     clock = pg.time.Clock()
     if SHOWFPS : font = pg.font.Font(None, 30)
 
@@ -145,7 +146,7 @@ def main():
 
         if toggler : updateDelayer+=1
         if updateDelayer>=simFrame:
-            updateDelayer=0
+            genCount, updateDelayer = genCount+1, 0
             lifeLayer.play_game()
 
         pixel_array = pg.PixelArray(out_image)
@@ -159,6 +160,10 @@ def main():
         screen.fill(0)
         rescaled_img = pg.transform.scale(out_image, (cur_w, cur_h))
         screen.blit(rescaled_img, (0,0))
+        if SHOWGEN:
+            gentxt = font.render(str(genCount), True, [100,100,100])
+            gentxt_rect = gentxt.get_rect(center=(cur_w/2, 20))
+            screen.blit(gentxt, gentxt_rect)
         # if true, displays the fps in the upper left corner, for debugging
         if SHOWFPS : screen.blit(font.render(str(int(clock.get_fps())), True, [0,200,0]), (8, 8))
 
