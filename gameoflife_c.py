@@ -23,11 +23,11 @@ SHOWFPS = True          # show framerate debug
 class LifeGrid():
     def __init__(self, maxSize, pattern):
         self.size = maxSize
-        self.grid = np.zeros(self.size, np.int16)
+        self.grid = np.zeros(self.size, np.bool_)
         cen_x = (self.size[0]//2) - (pattern.shape[0]//2)
         cen_y = (self.size[1]//2) - (pattern.shape[1]//2)
         self.grid[cen_x:cen_x+pattern.shape[0], cen_y:cen_y+pattern.shape[1]] = pattern
-        self.neighbors = np.copy(self.grid)
+        self.neighbors = np.zeros(self.size, np.uint8)
 
     def countNeighbors(self):
         self.neighbors[:] = 0

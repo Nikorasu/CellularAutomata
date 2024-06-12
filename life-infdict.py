@@ -21,7 +21,7 @@ class LifeGrid(dict):
     def __init__(self, *args, **kwargs):
         super(LifeGrid, self).__init__(*args, **kwargs)
 
-    def __missing__(self, *args, **kwargs):
+    def __missing__(self, *args, **kwargs):  # Shouldn't be necessary, dict.get('key',0) does same!
         return 0
 
     def check_cell(self, x: int, y: int):
@@ -81,7 +81,7 @@ def main():
 
     patdict = {}
     try:
-        with open('old/52513M') as patfile:
+        with open('old/symfiller') as patfile:
             pattern = reader(patfile)
             for px, py in pattern:
                 patdict[centerx+int(px), centery+int(py)] = 1
