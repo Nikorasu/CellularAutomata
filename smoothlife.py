@@ -20,10 +20,9 @@ class SmoothLife:
         self.kouter = np.where(dists <= radius, 1, 0)
         self.kinner = np.array([[1, 1, 1], [1, 1, 1], [1, 1, 1]])
         self.kouter[radius-1:radius+2, radius-1:radius+2] -= self.kinner
-        self.kouter_max = np.sum(self.kouter)
 
     def update(self):
-        nearby = convolve(self.array.astype(np.uint8), self.kouter, mode='wrap') / self.kouter_max
+        nearby = convolve(self.array.astype(np.uint8), self.kouter, mode='wrap') / np.sum(self.kouter)
         center = convolve(self.array.astype(np.uint8), self.kinner, mode='wrap') / 9
         self.array[:] = 0
         # 1, if center >= .5 and .26 <= nearby <= .46
