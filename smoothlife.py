@@ -25,8 +25,6 @@ class SmoothLife:
         nearby = convolve(self.array.astype(np.uint8), self.kouter, mode='wrap') / np.sum(self.kouter)
         center = convolve(self.array.astype(np.uint8), self.kinner, mode='wrap') / 9
         self.array[:] = 0
-        # 1, if center >= .5 and .26 <= nearby <= .46
-        # 1, if center < .5 and .27 <= nearby <= .36
         rl1 = (center >= .5) & (nearby >= .26) & (nearby <= .46)
         rl2 = (center < .5) & (nearby >= .27) & (nearby <= .36)
         self.array[rl1 | rl2] = True
