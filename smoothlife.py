@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 import numpy as np
 from time import sleep
-from colorsys import hsv_to_rgb
+#from colorsys import hsv_to_rgb
 from scipy.ndimage import convolve
 import os
 if os.name == 'nt': import msvcrt # for Windows keyboard input
 else: import sys, termios, tty, select # for Linux keyboard input
 
-# by Nikolaus Stromberg  nikorasu85@gmail.com  Copyright (c) 2024
+# by Nik Stromberg  nikorasu85@gmail.com  Copyright (c) 2024
 sim_size = (os.get_terminal_size().lines, os.get_terminal_size().columns)
 
 class SmoothLife:
