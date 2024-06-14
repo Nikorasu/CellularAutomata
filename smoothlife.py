@@ -13,8 +13,8 @@ sim_size = (os.get_terminal_size().lines, os.get_terminal_size().columns)
 class SmoothLife:
 
     def __init__(self):
-        self.array = np.random.choice([True, False], size=sim_size , p=[0.4, 0.6])
-        radius = 12
+        self.array = np.random.choice([True, False], size=sim_size , p=[.4, .6])
+        radius = 10  # 10-12 seem stable, 5 makes smoothmazes!
         x, y = np.ogrid[-radius:radius+1, -radius:radius+1]
         dists = np.sqrt(x**2 + y**2)
         self.kouter = np.where(dists <= radius, 1, 0)
