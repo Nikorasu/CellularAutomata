@@ -44,7 +44,7 @@ def print_state(array):
 if __name__ == '__main__':
     try:
         print('\n' * (sim_size[0]-1))  # preserves terminal
-        print('\x1b[?25l\x1b]0;Plasma',end='\a',flush=True)
+        print('\x1b[?25l\x1b]0;SmoothLife',end='\a',flush=True)
         sim_space = SmoothLife()
         if os.name == 'posix': # if on Linux
             oldsettings = termios.tcgetattr(sys.stdin) # store old terminal settings
