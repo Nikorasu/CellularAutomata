@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 import numpy as np
 from time import sleep
-from colorsys import hsv_to_rgb
-from scipy.ndimage import convolve
+#from colorsys import hsv_to_rgb
+#from scipy.ndimage import convolve
 import os
 if os.name == 'nt': import msvcrt # for Windows keyboard input
 else: import sys, termios, tty, select # for Linux keyboard input
-
+# by Nik Stromberg nikorasu85@gmail.com Copyright (c) 2024
 sim_size = (os.get_terminal_size().lines, os.get_terminal_size().columns)
 density = 0.58
 cycles = 12
@@ -42,7 +42,8 @@ def print_state(array):
         for j in range(array.shape[1]):
             #color = [int(c*255) for c in hsv_to_rgb(array[i,j],1,1)] #/360
             #row_cells.append(f'\x1b[48;2;{color[0]};{color[1]};{color[2]}m \x1b[0m')
-            row_cells.append(f'\x1b[48;2;{array[i,j]*255};{array[i,j]*255};{array[i,j]*255}m \x1b[0m')
+            #row_cells.append(f'\x1b[48;2;{array[i,j]*255};{array[i,j]*255};{array[i,j]*255}m \x1b[0m')
+            row_cells.append(f"\x1b[{'47' if array[i,j] else '40'}m \x1b[0m")
         output += ''.join(row_cells) + "\n"
     print(output[:-1], end='\r')
 

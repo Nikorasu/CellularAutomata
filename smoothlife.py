@@ -6,7 +6,7 @@ from scipy.ndimage import convolve
 import os
 if os.name == 'nt': import msvcrt # for Windows keyboard input
 else: import sys, termios, tty, select # for Linux keyboard input
-
+# by Nik Stromberg nikorasu85@gmail.com Copyright (c) 2024
 sim_size = (os.get_terminal_size().lines, os.get_terminal_size().columns)
 
 class SmoothLife:
